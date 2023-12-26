@@ -52,4 +52,4 @@ We recommend creating test DOIs on the DataCite testing server first to make sur
 For more information about minting DOIs using the DataCite API visit [DataCite's developer documentation](https://support.datacite.org/docs/api-create-dois) and for more information on the REST API for your Open Repository instance, put a /rest after your repository url to be directed to the correct page.
 
 ## License
-Licensed under CC-BY-4.0.
+Licensed under MIT License.
