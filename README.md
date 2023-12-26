@@ -19,9 +19,9 @@ We have tried to generalize this version of the script as much as possible so it
 - authorization = Authorization key from [https://support.datacite.org/reference/post_dois](https://support.datacite.org/reference/post_dois)
 
 ## Metadata Fields
-Depending on the fields in your Open Repository instance and what fields you would like to import into your DataCite metadata, you may need to edit the code or comment out fields you do not use or add fields you wish to import into your DataCite metadata. All edits would take place in step 3.
+Depending on the fields in your Open Repository instance and what fields you would like to import into your DataCite metadata, you may need to edit the code, comment out fields you do not use, or add fields you wish to import into your DataCite metadata. All edits would take place in step 3.
 
-Open repository metadata fields used in this script:
+Open Repository metadata fields used in this script:
 - dc.contributor.author
 - dc.identifier.orcid
 - dc.date.issued
@@ -40,7 +40,7 @@ Following DataCite fields are considered the same across all items and added thr
 - affiliationIdentifierScheme = ROR
 - affiliation schemeUri = https://ror.org
 
-## Outputs:
+## Output Files:
 - item.json = edited JSON from Open Repository.
 - DataCiteUpload.json = JSON file uploaded to DataCite.
 - DataCiteDoiMetadata.json = JSON response from DataCite after posting new DOI.
