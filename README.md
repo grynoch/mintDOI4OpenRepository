@@ -1,7 +1,7 @@
 # Mint DOI for Open Repository
 Created by Tess Grynoch and Lisa Palmer
 
-Script for minting a DOI with the DataCite API using metadata from an Open Repository instance (DSpace 5) via the Open Repository API.
+Script for minting a draft DOI with the DataCite API using metadata from an Open Repository instance (DSpace 5) via the Open Repository API. 
 
 ## Requirements:
 - Python 3 (with json, requests, and re libraries)
