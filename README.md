@@ -9,7 +9,7 @@ Script for minting a draft DOI with the DataCite API using metadata from an Open
 - Username and password for a DataCite account associated with the repository you are minting DOIs for
 
 ## Inputs:
-We have tried to generalize this version of the script as much as possible so it can have broader applications. We've left many variables as inputs which you can update in the script if you do not want to input every time. The only input we use in the UMass Chan version of the script is the item ID.
+We have tried to generalize this version of the script as much as possible so it can have broader applications. We've left many variables as inputs which you can update in the script if you do not want to input them every time. The only input we use in the UMass Chan version of the script is the item ID.
 
 - repository = Repository url (ex. https://repository.escholarship.umassmed.edu)
 - item = Item ID located on the edit page of an item
@@ -43,11 +43,13 @@ Following DataCite fields are considered the same across all items and added thr
 ## Output Files:
 - item.json = edited JSON from Open Repository.
 - DataCiteUpload.json = JSON file uploaded to DataCite.
-- DataCiteDoiMetadata.json = JSON response from DataCite after posting new DOI.
-- newdoiReminder.txt = Text file with new DOI to add to Open Repository, handle of the item and any ORCIDs that needed to be added to the DataCite metadata if there were multiple authors.
+- DataCiteDoiMetadata.json = JSON response from DataCite after posting new draft DOI.
+- newdoiReminder.txt = Text file with new draft DOI to add to the Open Repository item and make the DOI findable, handle of the item, and any ORCIDs that needed to be added to the DataCite metadata if there were multiple authors.
 
 ## Notes: 
 We recommend creating test DOIs on the DataCite testing server first to make sure the metadata is being uploaded correctly. To create DOIs on the DataCite testing server, change the url in step 4 to "https://api.test.datacite.org/dois" and use your assigned prefix for the test server.
+
+This script can also be modified to make the DOI findable when the metadata is first uploaded to DataCite by including the attribute "event" with value "publish" in the payload (DataCiteUpload,json) before the prefix field.
 
 For more information about minting DOIs using the DataCite API visit [DataCite's developer documentation](https://support.datacite.org/docs/api-create-dois) and for more information on the REST API for your Open Repository instance, put a /rest after your repository url to be directed to the correct page.
 
