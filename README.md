@@ -1,4 +1,4 @@
-# Mint DOI for Open Repository
+# Mint DOI for Open Repository 5.7
 Created by Tess Grynoch and Lisa Palmer
 
 Script for minting a draft DOI with the DataCite API using metadata from an Open Repository instance (DSpace 5) via the Open Repository API. 
