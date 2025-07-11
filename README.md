@@ -1,7 +1,9 @@
-# Mint DOI for Open Repository 5.7
+# Mint DOI for Open Repository
 Created by Tess Grynoch and Lisa Palmer
 
-Script for minting a draft DOI with the DataCite API using metadata from an Open Repository instance (DSpace 5) via the Open Repository API. 
+Script for minting a draft DOI with the DataCite API using metadata from an Open Repository instance (**DSpace 7**) via the Open Repository API. To use this version of the script, you can clone this repository or download the source code from the most recent release.
+
+To access the **DSpace 5** version of this script, please see the [DSpace 5 branch](https://github.com/grynoch/mintDOI4OpenRepository/tree/DSpace5) or [DSpace 5 release](https://github.com/grynoch/mintDOI4OpenRepository/releases/tag/v1.0.0).
 
 ## Requirements:
 - Python 3 (with json, requests, and re libraries)
@@ -51,7 +53,12 @@ We recommend creating test DOIs on the DataCite testing server first to make sur
 
 This script can also be modified to make the DOI findable when the metadata is first uploaded to DataCite by including the attribute "event" with value "publish" in the payload (DataCiteUpload.json) before the prefix field.
 
-For more information about minting DOIs using the DataCite API visit [DataCite's developer documentation](https://support.datacite.org/docs/api-create-dois) and for more information on the REST API for your Open Repository instance, put a /rest after your repository url to be directed to the correct page.
+For more information about minting DOIs using the DataCite API visit [DataCite's developer documentation](https://support.datacite.org/docs/api-create-dois).
+
+For the Open Repository (DSpace) REST API:
+**For DSpace 7**, put a /server/#/server/api after your repository url to be directed to the HAL Browser and view the [DSpace 7 REST API documentation on GitHub](https://github.com/DSpace/RestContract/blob/main/README.md).
+
+**For DSpace 5**, put a /rest after your repository url to be directed to the correct page.
 
 ## License
 Licensed under MIT License.

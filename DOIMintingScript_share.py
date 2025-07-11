@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tues Dec 26 2023
+Created on Tues Dec 03 2024
 
 @author: Tess Grynoch and Lisa Palmer
 
@@ -21,51 +21,62 @@ repository = input("Repository url (ex. https://repository.escholarship.umassmed
 item = input("Item ID:") 
 
 # 1.	Pull in data for individual record from Open Repository REST API
-itemurl = repository + "/rest/items/"+ item + "/metadata"
+itemurl = repository + "/server/api/core/items/"+ item
 response = requests.get(itemurl)
 #print(response.json()) #For testing purposes to check what data is pulled from the repository
 
 # 2. Edit JSON to display in standard key: value pairs
-#Convert list to JSON format and print JSON
+#Extract metadata element which houses all pertinent information
+metadata = data["metadata"]
+
+#Convert list to JSON format and print JSON for easier viewing.
 def jprint(obj):
     # create a formatted string of the Python JSON object
     text = json.dumps(obj, sort_keys=True, indent=4)
     print(text)
 
-jprint(response.json())
+jprint(metadata)
 
 #Turn JSON into variable data
 data = json.dumps(response.json(), sort_keys=True, indent=4)
 
-#Edit string to remove key, language, and value
-dataedit = data.replace('"key":','') 
-dataedit = dataedit.replace('"language": "en_US",','')
-dataedit = dataedit.replace('"language": null,','')
-dataedit = dataedit.replace('"value":','')
-dataedit = dataedit.replace('",','":')
-dataedit = dataedit.replace('{','')
-dataedit = dataedit.replace('}','')
-dataedit = dataedit.replace('[','{')
-dataedit = dataedit.replace(']','}')
-dataedit = dataedit.replace('"language": "":','')
-dataedit = dataedit.replace('"language": "*":','')
-#print(dataedit)
+#Remove language, authority, confidence, and places child keys from JSON
+#For elements that only have a single value
+keysneeded = ["dc.date.issued","dc.description.abstract", "dc.identifier.uri","dc.publisher", "dc.title","dc.type"]
+singles = {key: metadata[key] for key in keysneeded}
 
-#%%
-#Accounting for multiple authors 
-#Create a dictionary for authors called creators early and iterate on the values
-#Determine the number of authors by running a count of "dc.contributor.author"
-authorcount = dataedit.count("dc.contributor.author")
+singles2 = {} #create empty dictionary for them to go in
+#pair key with text from value 
+for key, value in singles.items():
+    x=value[0]
+    for inner_key, inner_value in x.items():
+        if inner_key == "value":
+            singles2[key]= inner_value
+            
+#For elements that have multiple values (authors and orcids)
+#For records with multiple authors - create a dictionary for authors called creators early and iterate on the values
+#Determine the number of authors by calculating the length of (number of elements in) "dc.contributor.author"
+authorcount = len(metadata["dc.contributor.author"])
 
-#Create a vector with author numbers to pull from for numbering
+#create a vector with author numbers to pull from for numbering
 authornumbers = list(map(str, (list(range(1,authorcount+1)))))
 
-#Replace each dc.contributor.author with dc.contributor.author# with the number
-# being the author order
+#if there is a single author we can treat it as an element with a single value
+authors = {}
+if authorcount == 1:
+    for key, value in metadata["dc.contributor.author"][0].items():
+        if key == "value":
+            authors["dc.contributor.author"]= value
+            
+#replace each dc.contributor.author with dc.contributor.author# with the number
+# being the author order #test out when we have multiple authors
 if authorcount > 1 :
     for i in authornumbers:
-        dataedit = dataedit.replace('"dc.contributor.author"','"dc.contributor.author' + i + '"', 1)
-
+        x= int(i) - 1
+        for key, value in metadata["dc.contributor.author"][x].items():
+            if key == "value":
+                authors["dc.contributor.author"+i]= value
+                
 # Create list of dc.contributor.author keys based on author count
 dcauthorkeys = []
 if authorcount > 1 :
@@ -73,21 +84,30 @@ if authorcount > 1 :
         dcauthorkeys.append("dc.contributor.author" + i)
 else:
     dcauthorkeys.append("dc.contributor.author")
-    
-#If there are ORCIDs when there are multiple authors, save them to print them at the end.
-#They need to be added separately because they are not attached to the author information in the repository record. 
-#They will need to be added manually to the DataCite metadata.
-if (authorcount > 1 and 'dc.identifier.orcid' in dataedit):
-    PrintORCIDs = re.findall(r'\d\d\d\d-\d\d\d\d-\d\d\d\d-\d\d\d\d', dataedit)
 
-#%%
-#Write JSON file called item
-with open('item.json', 'w') as file:
+#Solution for multiple orcids #not yet tested on multi-author record
+#if there is a single orcid id we can treat it as an element with a single value
 
-    # write
-    file.write(dataedit)
+if "dc.identifier.orcid" in metadata.keys():
+    orcid = {}
+    if authorcount == 1:
+        for key, value in metadata["dc.identifier.orcid"][0].items():
+            if key == "value":
+                orcid["dc.identifier.orcid"]= value        
+    if authorcount > 1 :
+        PrintORCIDs = re.findall(r'\d\d\d\d-\d\d\d\d-\d\d\d\d-\d\d\d\d', json.dumps(metadata))
 
-#%%
+#merge singles, authors, and orcid dictionaries together
+# define function to combine two dictionaries
+def Merge(dict1, dict2):
+  for i in dict2.keys():
+      dict1[i]=dict2[i]
+  return dict1
+
+doimetadata = Merge(singles2, authors)
+if authorcount==1 and "dc.identifier.orcid" in metadata.keys():
+    doimetadata = Merge(doimetadata, orcid)
+
 # 3. Transform relevant JSON fields to DataCite JSON standards 
     
 #transform is the function to add a parent level to the dictionary using an 
@@ -98,10 +118,7 @@ def transform(dct, affected_keys):
         new_dct[new_key] = {key: new_dct.pop(key) for key in keys}
     return new_dct
 
-#Open json file
-with open('item.json','r') as file:
-  # read JSON data
-  data2 = json.load(file)
+  data2 = doimetadata
   
 #Select only the fields needed for DataCite metadata
 #Create dictionary for authors
