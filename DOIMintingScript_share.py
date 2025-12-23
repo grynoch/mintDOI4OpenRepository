@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tues Dec 03 2024
+Updated on Tues Dec 23 2025
 
 @author: Tess Grynoch and Lisa Palmer
 
@@ -23,6 +24,7 @@ item = input("Item ID:")
 # 1.	Pull in data for individual record from Open Repository REST API
 itemurl = repository + "/server/api/core/items/"+ item
 response = requests.get(itemurl)
+data = response.json()
 #print(response.json()) #For testing purposes to check what data is pulled from the repository
 
 # 2. Edit JSON to display in standard key: value pairs
@@ -69,7 +71,7 @@ if authorcount == 1:
             authors["dc.contributor.author"]= value
             
 #replace each dc.contributor.author with dc.contributor.author# with the number
-# being the author order #test out when we have multiple authors
+# being the author order 
 if authorcount > 1 :
     for i in authornumbers:
         x= int(i) - 1
@@ -85,7 +87,7 @@ if authorcount > 1 :
 else:
     dcauthorkeys.append("dc.contributor.author")
 
-#Solution for multiple orcids #not yet tested on multi-author record
+#Solution for multiple orcids
 #if there is a single orcid id we can treat it as an element with a single value
 
 if "dc.identifier.orcid" in metadata.keys():
@@ -98,7 +100,7 @@ if "dc.identifier.orcid" in metadata.keys():
         PrintORCIDs = re.findall(r'\d\d\d\d-\d\d\d\d-\d\d\d\d-\d\d\d\d', json.dumps(metadata))
 
 #merge singles, authors, and orcid dictionaries together
-# define function to combine two dictionaries
+# define Merge function to combine two dictionaries
 def Merge(dict1, dict2):
   for i in dict2.keys():
       dict1[i]=dict2[i]
@@ -118,7 +120,7 @@ def transform(dct, affected_keys):
         new_dct[new_key] = {key: new_dct.pop(key) for key in keys}
     return new_dct
 
-  data2 = doimetadata
+data2 = doimetadata
   
 #Select only the fields needed for DataCite metadata
 #Create dictionary for authors
@@ -140,10 +142,6 @@ else:
           'dc.identifier.uri','dc.publisher','dc.title',
           'dc.type'}} 
 #Combine the two dictionaries using Merge function defined below 
-def Merge(dict1, dict2):
-  for i in dict2.keys():
-      dict1[i]=dict2[i]
-  return dict1
 data2 = Merge(authors, data2) 
 
 #Rename keys to DataCite keys and add consistent fields 
@@ -319,11 +317,11 @@ with open('DataCiteDoiMetadata.json','r') as file:
   handle = data5["data"]["attributes"]["url"] #url for item in Open Repository
 
 #Print reminder text in Python and save as text file with item id
-if (authorcount > 1 and 'dc.identifier.orcid' in dataedit):
+if (authorcount > 1 and 'dc.identifier.orcid' in metadata):
     print("Add " + newdoi + " to " + handle + "and add the following ORCID iD(s) to their corresponding author(s): " + ', '.join(map(str, PrintORCIDs))) 
 else:
     print("Add " + newdoi + " to " + handle)
-if (authorcount > 1 and 'dc.identifier.orcid' in dataedit):
+if (authorcount > 1 and 'dc.identifier.orcid' in metadata):
     Reminder = "Add " + newdoi + " to " + handle + "and add the following ORCID iD(s) to their corresponding author(s): " + ', '.join(map(str, PrintORCIDs))
 else:
     Reminder = "Add " + newdoi + " to " + handle
@@ -331,3 +329,77 @@ ReminderFileName = "newdoiReminder_" + item + ".txt"
 with open(ReminderFileName, 'w') as file:
     file.write(Reminder)
 
+#%%
+# 6. Update Repository record with DOI - add DOI to dc.identifier.doi – use Open Repository REST API
+
+#Create the patch JSON file
+patchdoi = {}
+patchdoi["op"] = "add" 
+patchdoi["path"] = "/metadata/dc.identifier.doi"
+patchdoi["value"] = {"value": newdoi}
+patchdoi2 =[patchdoi]
+
+patchdoi_json = json.dumps(patchdoi2, indent=4)
+
+with open('patchdoi.json', 'w') as file:
+
+    # write
+    file.write(patchdoi_json)
+    
+#Gain authorization to make edits to Open Repository site. 
+#Need JSON Web token in the Authorization header from this call response
+
+# Get cookie and token for authorization from Open Repository website. 
+#Instructions: Open the console in your browser's developer tools and run a search.
+#Navigate to the Network view, select one of the GET responses to copy 
+#the xsrfcookie and xsrftoken from the request headers.
+xsrfcookie = input("xsrfcookie from Open Repository site. See instructions in code.")
+xsrftoken = input("xsrftoken from OpenRepository site. See instructions in code.")
+
+# Username and password of admin with permission to make edits to records
+username = input("Open Repository admin username")
+password = input("Open Repository admin password")
+
+cookies = {
+    'DSPACE-XSRF-COOKIE': xsrfcookie,
+}
+
+headers = {
+    'X-XSRF-TOKEN': xsrftoken,
+    # 'Cookie': 'DSPACE-XSRF-COOKIE={xsrf-cookie}',
+    'Content-Type': 'application/x-www-form-urlencoded',
+}
+
+login = {
+    'user': username,
+    'password': password,
+}
+
+repologin = repository + "/server/api/authn/login"
+authresponse = requests.post(repologin, cookies=cookies, headers=headers, data=login)
+
+print(authresponse.headers)
+
+#Adding DOI to record
+bearer = authresponse.headers["Authorization"]
+bearer0 = bearer[7:]
+accessToken = '{{"accessToken":"'+bearer0+'"}}'
+
+cookies = {
+    'DSPACE-XSRF-COOKIE': xsrfcookie,
+    'dsAuthInfo': accessToken,
+}
+
+headers = {
+    'Authorization': bearer,
+    'X-XSRF-TOKEN': xsrftoken,
+    'Content-Type': 'application/json',
+    # 'Cookie': 'DSPACE-XSRF-COOKIE={csrf}; dsAuthInfo={{"accessToken":"{bearer}"}}',
+}
+
+
+data6 = open('patchdoi.json')
+data7 = data6.read()
+
+doiuploadresponse = requests.patch(itemurl, cookies=cookies, headers=headers, data=data7)
+print(doiuploadresponse.text)
