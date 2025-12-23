@@ -1,7 +1,7 @@
 # Mint DOI for Open Repository
 Created by Tess Grynoch and Lisa Palmer
 
-Script for minting a draft DOI with the DataCite API using metadata from an Open Repository instance (**DSpace 7**) via the Open Repository API. To use this version of the script, you can clone this repository or download the source code from the most recent release.
+Script for minting a draft DOI with the DataCite API using metadata from an Open Repository instance (**DSpace 7**) via the Open Repository API and updating the record in Open Repository. To use this version of the script, you can clone this repository or download the source code from the most recent release.
 
 To access the **DSpace 5** version of this script, please see the [DSpace 5 branch](https://github.com/grynoch/mintDOI4OpenRepository/tree/DSpace5) or [DSpace 5 release](https://github.com/grynoch/mintDOI4OpenRepository/releases/tag/v1.0.0).
 
@@ -19,6 +19,10 @@ We have tried to generalize this version of the script as much as possible so it
 - affiliationRORID = Affiliation ROR ID. Get from [https://ror.org/](https://ror.org/). (ex. https://ror.org/0464eyp60)
 - `data3["prefix"]` = DOI prefix for repository
 - authorization = Authorization key from [https://support.datacite.org/reference/post_dois](https://support.datacite.org/reference/post_dois)
+- xsrfcookie = xsrf cookie from Open Repository site. To retrive the cookie and token, open the console in your browser's developer tools and run a search > navigate to the Network view > select one of the GET responses to copy the xsrf cookie and xsrf token from the request headers.
+- xsrftoken = xsrf token from OpenRepository site. Retrieve from the same GET reponse as the xsrfcookie. The xsrf token is usually part of the xsrf cookie.
+- username = Login username for an admin of the Open Repository instance with permission to make edits to records.
+- password = Login password for an admin of the Open Repository instance with permission to make edits to records.
 
 ## Metadata Fields
 Depending on the fields in your Open Repository instance and what fields you would like to import into your DataCite metadata, you may need to edit the code, comment out fields you do not use, or add fields you wish to import into your DataCite metadata. All edits would take place in step 3.
@@ -46,7 +50,7 @@ Following DataCite fields are considered the same across all items and added thr
 - item.json = edited JSON from Open Repository.
 - DataCiteUpload.json = JSON file uploaded to DataCite.
 - DataCiteDoiMetadata.json = JSON response from DataCite after posting new draft DOI.
-- newdoiReminder_#####.txt = Text file with new draft DOI to add to the Open Repository item and make the DOI findable, handle of the item, and any ORCIDs that needed to be added to the DataCite metadata if there were multiple authors. File name has item number at the end to help keep track of files if you are minting a number of DOIs in a batch.
+- newdoiReminder_#####.txt = Text file with new draft DOI for the Open Repository item and make the DOI findable, handle of the item, and any ORCIDs that needed to be added to the DataCite metadata if there were multiple authors. File name has item number at the end to help keep track of files if you are minting a number of DOIs in a batch.
 
 ## Notes: 
 We recommend creating test DOIs on the DataCite testing server first to make sure the metadata is being uploaded correctly. When you're ready to create DOIs on the DataCite production server, change the url in step 4 to "https://api.datacite.org/dois" and use your assigned prefix for the production server.
